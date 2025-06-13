@@ -6,10 +6,8 @@ import PIL
 import PIL.Image
 import cv2
 import pygame as pg
-import cups
-import RPi.GPIO as GPIO
 
-# cv2.setLogLevel(0)
+cv2.setLogLevel(0)
 
 
 class Config:
@@ -98,11 +96,6 @@ class AppManager:
         # paths
         Config.PHOTOS_FOLDER.mkdir(exist_ok=True, parents=True)
 
-        # GPIO setup
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(Config.TOKEN_SLOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(Config.BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
     def _init_camera(self) -> None:
         self.camera = cv2.VideoCapture(Config.DEFAULT_CAMERA)
 
@@ -154,15 +147,10 @@ class AppManager:
             textpos.centerx, textpos.centery = pos
         self._screen.blit(textsurf, textpos)
 
-    def _query_pin_state(self, pin: int, expected: Any = GPIO.LOW) -> None:
-        if self._debug:
-            for event in pg.event.get():
-                if event.type == pg.KEYDOWN and event.key == pg.K_p:
-                    return True
-            return False
-        # controllo il pin
-        if GPIO.input(pin) == expected:
-            return True
+    def _query_pin_state(self, pin: int) -> None:
+        for event in pg.event.get():
+            if event.type == pg.KEYDOWN and event.key == pg.K_p:
+                return True
         return False
 
     def _check_for_close_event(self) -> bool:
@@ -175,8 +163,7 @@ class AppManager:
 
     def _wait(self, secs) -> None:
         pg.event.pump()
-        # 1000 di base, ma su RaspberryPi1 serve 10 per tempi decenti
-        pg.time.wait(int(secs * 10)) 
+        pg.time.wait(int(secs * 1000))
         pg.event.pump()
 
     def _load_photo(self, image_path: Path) -> None:
@@ -242,49 +229,8 @@ class AppManager:
         [merge.paste(pic, pos) for pic, pos in zip(pictures, positions)]
         return merge
 
-    def _wait_for_print_completion(conn, job_id, timeout=60):
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            try:
-                job_attributes = conn.getJobAttributes(job_id)
-                job_state = job_attributes.get("job-state")
-                print(f"Stato job: {job_state}")
-
-                if job_state == PrinterJobStates.COMPLETED:
-                    print("Stampa completata!")
-                    return True
-                elif job_state in [PrinterJobStates.CANCELED, PrinterJobStates.ABORTED]:
-                    print("Stampa fallita!")
-                    return False
-            except cups.IPPError:
-                print("Job completato (non più in coda)")
-                return True
-            time.sleep(1)
-        print("Timeout raggiunto")
-        return False
-
     def _print_pic(self, pic_path: Path) -> None:
-        if not pic_path.is_file():
-            return
-        conn = cups.Connection()
-
-        printer_name = conn.getPrinters().keys()[0]
-        conn.enablePrinter(printer_name)
-
-        start_time = time.time()
-        while len(conn.getJobs()) > Config.MAX_QUEUE_SIZE:
-            if time.time() - start_time > Config.MAX_WAIT_TIME:
-                print("Timeout: coda troppo piena, stampo comunque")
-                break
-            print(f"Coda: {len(conn.getJobs())} jobs, aspetto...")
-            time.sleep(10)
-        job_id = conn.printFile(
-            printer_name,
-            str(pic_path.resolve()),
-            f"PhotoBooth - {pic_path.name}",
-            {},
-        )
-        self._wait_for_print_completion(conn, job_id)
+        self._wait(8)
 
     def _empty_directory(self, dir: Path) -> None:
         for item in dir.iterdir():
@@ -386,7 +332,6 @@ class AppManager:
                 self.print_photoshoot()
         finally:
             pg.quit()
-        GPIO.cleanup()
 
 
 def main(debug: bool = False) -> None:
