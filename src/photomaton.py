@@ -7,13 +7,13 @@ import PIL.Image
 import cv2
 import pygame as pg
 import cups
+import RPi.GPIO as GPIO
 
-cv2.setLogLevel(0)
+# cv2.setLogLevel(0)
 
 
 class Config:
     # pins
-    LED_PIN: int = 23
     TOKEN_SLOT_PIN: int = 24
     BUTTON_PIN: int = 25
     # paths
@@ -76,14 +76,14 @@ class AppManager:
         self._debug = debug
         self._screen_size = pg.display.Info().current_w, pg.display.Info().current_h
         self._resize(Config.WIN_SCALE_FACTOR)
-        self._screen = pg.display.set_mode(self._screen_size)
+        self._screen = pg.display.set_mode(self._screen_size, pg.FULLSCREEN)
         self._current_pics = []
         self._images = {
             Config.BACKGROUND_IMAGE_PATH: pg.image.load(
-                Config.BACKGROUND_IMAGE_PATH
+                str(Config.BACKGROUND_IMAGE_PATH)
             ).convert(),
             Config.ARROW_IMAGE_PATH_PATH: pg.image.load(
-                Config.ARROW_IMAGE_PATH_PATH
+                str(Config.ARROW_IMAGE_PATH_PATH)
             ).convert_alpha(),
         }
 
@@ -100,7 +100,6 @@ class AppManager:
 
         # GPIO setup
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(Config.LED_PIN, GPIO.OUT)
         GPIO.setup(Config.TOKEN_SLOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(Config.BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
@@ -179,11 +178,8 @@ class AppManager:
         pg.time.wait(int(secs * 1000))
         pg.event.pump()
 
-    def _set_pin_state(self, pin: int, set: Any = GPIO.HIGH) -> None:
-        GPIO.output(pin, set)
-
     def _load_photo(self, image_path: Path) -> None:
-        self._images[image_path] = pg.image.load(Config.PHOTOS_FOLDER / image_path)
+        self._images[image_path] = pg.image.load(str(Config.PHOTOS_FOLDER / image_path))
 
     def _unload_photo(self, image_path: Path) -> None:
         if image_path in self._images:
@@ -311,7 +307,6 @@ class AppManager:
                 return False
             wait_for_token = not self._query_pin_state(Config.TOKEN_SLOT_PIN)
 
-        self._set_pin_state(Config.LED_PIN)
         # immagine con frecce in basso verso il pulsante
         self._display_background_alpha()
         x, y = self._screen.get_rect().center
@@ -331,7 +326,6 @@ class AppManager:
             if self._check_for_close_event():
                 return False
             wait_for_button_pressed = not self._query_pin_state(Config.BUTTON_PIN)
-        self._set_pin_state(Config.LED_PIN, GPIO.LOW)
         return True
 
     def start_photoshoot(self) -> None:
@@ -391,7 +385,7 @@ class AppManager:
                 self.print_photoshoot()
         finally:
             pg.quit()
-        # GPIO.cleanup()
+        GPIO.cleanup()
 
 
 def main(debug: bool = False) -> None:
@@ -400,5 +394,4 @@ def main(debug: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    # Thread(target=main).start()
-    main(debug=True)
+    Thread(target=main).start()
