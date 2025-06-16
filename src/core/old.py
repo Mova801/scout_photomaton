@@ -1,70 +1,13 @@
 from pathlib import Path
-from threading import Thread
 import time
 from typing import Any
 import PIL
 import PIL.Image
 import cv2
 import pygame as pg
-import cups
-import RPi.GPIO as GPIO
 
-# cv2.setLogLevel(0)
-
-
-class Config:
-    # pins
-    TOKEN_SLOT_PIN: int = 24
-    BUTTON_PIN: int = 25
-    # paths
-    PHOTOS_FOLDER: Path = Path("photos")
-    WATERMARK_IMAGE_PATH: Path = Path("images") / Path("template") / Path("template.png")
-    BACKGROUND_IMAGE_PATH: Path = Path("images") / Path("background.png")
-    ARROW_IMAGE_PATH_PATH: Path = Path("images") / Path("arrow.png")
-    # font
-    FONT_FAMILY: str = None
-    # colors
-    TEXT_COLOR: pg.Color = pg.Color("white")
-    BACKGROUND_COLOR: pg.Color = pg.Color("black")
-    # photobooth
-    PHOTO_COUNT: int = 3
-    COUNTDOWN: int = 3
-    # camera
-    DEFAULT_CAMERA: int = 0
-    # printer
-    MAX_QUEUE_SIZE: int = 3
-    MAX_WAIT_TIME: int = 60
-    # image
-    IMAGE_WIDTH = 550
-    IMAGE_HEIGHT = 360
-    # other
-    WIN_SCALE_FACTOR: int = 1
-    TRANSITION_DELAY_SEC: float = 0.2
-
-
-class PrinterJobStates:
-    # Stati possibili:
-    # 3 = pending (in attesa)
-    # 4 = pending-held (in attesa, bloccato)
-    # 5 = processing (in elaborazione)
-    # 6 = processing-stopped (elaborazione fermata)
-    # 7 = canceled (annullato)
-    # 8 = aborted (interrotto)
-    # 9 = completed (completato)
-    PENDING = 3
-    PENDING_HELD = 4
-    PROCESSING = 5
-    PROCESSING_STOPPED = 6
-    CANCELED = 7
-    ABORTED = 8
-    COMPLETED = 9
-
-
-class CannotTakePictureError(Exception):
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
+# import cups
+# import RPi.GPIO as GPIO
 
 class AppManager:
 
@@ -99,9 +42,11 @@ class AppManager:
         Config.PHOTOS_FOLDER.mkdir(exist_ok=True, parents=True)
 
         # GPIO setup
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(Config.TOKEN_SLOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(Config.BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # GPIO.setmode(GPIO.BCM)
+        # GPIO.setup(Config.TOKEN_SLOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # GPIO.setup(Config.BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+        
 
     def _init_camera(self) -> None:
         self.camera = cv2.VideoCapture(Config.DEFAULT_CAMERA)
@@ -176,7 +121,7 @@ class AppManager:
     def _wait(self, secs) -> None:
         pg.event.pump()
         # 1000 di base, ma su RaspberryPi1 serve 10 per tempi decenti
-        pg.time.wait(int(secs * 10)) 
+        pg.time.wait(int(secs * 10))
         pg.event.pump()
 
     def _load_photo(self, image_path: Path) -> None:
@@ -387,12 +332,3 @@ class AppManager:
         finally:
             pg.quit()
         GPIO.cleanup()
-
-
-def main(debug: bool = False) -> None:
-    manager: AppManager = AppManager(debug)
-    manager.run()
-
-
-if __name__ == "__main__":
-    Thread(target=main).start()

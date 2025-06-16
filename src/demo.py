@@ -1,7 +1,6 @@
 from pathlib import Path
 from threading import Thread
 import time
-from typing import Any
 import PIL
 import PIL.Image
 import cv2
@@ -16,7 +15,9 @@ class Config:
     BUTTON_PIN: int = 25
     # paths
     PHOTOS_FOLDER: Path = Path("photos")
-    WATERMARK_IMAGE_PATH: Path = Path("images") / Path("template") / Path("template.png")
+    WATERMARK_IMAGE_PATH: Path = (
+        Path("images") / Path("template") / Path("template.png")
+    )
     BACKGROUND_IMAGE_PATH: Path = Path("images") / Path("background.png")
     ARROW_IMAGE_PATH_PATH: Path = Path("images") / Path("arrow.png")
     # font

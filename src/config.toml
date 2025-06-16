@@ -1,0 +1,84 @@
+[app]
+name = "Scoutmaton"
+version = "1.0.0-dev"
+screen_scale = 0.5
+base_size = [800, 600]
+mode = 1               # normal
+
+[logging]
+level = "INFO"
+format = "[%(threadName)s] - %(message)s"
+
+[commands]
+[commands.mode]
+short = "-m"
+long = "--mode"
+help = "Modalità di esecuzione: 0 - normale, 1 - debug (log avanzato), 2 - threaded, 3 - threaded debug"
+arg = true
+
+[commands.name]
+short = "-n"
+long = "--name"
+help = "Nome da dare all'applicazione"
+arg = true
+
+[commands.fullscreen]
+short = "-f"
+long = "--fullscreen"
+help = "Se presente imposta l'applicazione fullscreen"
+arg = false
+
+[commands.deferred]
+long = "--deferred"
+help = "Ritarda l'avvio della GUI fino a quando non è richiesto mostrare la schermata principale"
+arg = false
+
+[photo]
+count = 3
+countdown = 3
+
+[paths.folders]
+logs = "logs"
+images = "images"
+photos = "photos"
+
+[paths.images]
+icon = "icon.png"
+watermark = "watermark.png"
+background = "background.png"
+arrow = "arrow.png"
+
+[gui.labels]
+init = "Avvio"
+token = "Inserisci un gettone"
+button = "Premi il pulsante"
+
+
+[gui.colors]
+text = "white"
+background = "black"
+
+[io.pins]
+[io.pins.button_led]
+pin = 23
+type = 0 # OUTPUT
+pud = 20 # OFF
+
+[io.pins.button]
+pin = 24
+type = 1
+pud = 22
+
+[io.pins.microswitch]
+pin = 25
+type = 1 # IN
+pud = 22 # UP
+
+[usb]
+[printer]
+paper_size = 'A4'
+max_queue = 10
+max_wait_sec = 90
+
+[camera]
+default = 0
