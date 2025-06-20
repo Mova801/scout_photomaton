@@ -31,7 +31,6 @@ class Config:
         return value
 
     def get_path(self, key: str) -> str:
-        file = None
         for path in self.get("paths.folders"):
             folder = self.get("paths.folders." + path)
             files = self.get("paths." + folder)

@@ -1,9 +1,9 @@
 [app]
 name = "Scoutmaton"
 version = "1.0.0-dev"
-screen_scale = 0.5
-base_size = [800, 600]
-mode = 1               # normal
+base_size = [1000, 600]
+mode = 2
+display_mode = false
 
 [logging]
 level = "INFO"
@@ -13,29 +13,38 @@ format = "[%(threadName)s] - %(message)s"
 [commands.mode]
 short = "-m"
 long = "--mode"
-help = "Modalità di esecuzione: 0 - normale, 1 - debug (log avanzato), 2 - threaded, 3 - threaded debug"
+help = "Modalità di esecuzione: 1 - normale, 2 - debug, 3 - threaded, 4 - threaded debug"
 arg = true
 
 [commands.name]
 short = "-n"
 long = "--name"
-help = "Nome da dare all'applicazione"
+help = "Nome dell'applicazione"
 arg = true
 
 [commands.fullscreen]
 short = "-f"
 long = "--fullscreen"
-help = "Se presente imposta l'applicazione fullscreen"
+help = "Imposta l'applicazione fullscreen"
 arg = false
 
 [commands.deferred]
 long = "--deferred"
-help = "Ritarda l'avvio della GUI fino a quando non è richiesto mostrare la schermata principale"
+help = "Ritarda l'avvio della GUI fino a quando non è chiamato un metodo del gui manager"
 arg = false
+
+[commands.camera]
+short = "-c"
+long = "--camera"
+help = "Id della fotocamera da usare"
+arg = true
 
 [photo]
 count = 3
 countdown = 3
+queue_size = 3
+prefix = 'foto_'
+extension = 'jpg'
 
 [paths.folders]
 logs = "logs"
@@ -52,7 +61,9 @@ arrow = "arrow.png"
 init = "Avvio"
 token = "Inserisci un gettone"
 button = "Premi il pulsante"
-
+photo_count = "Foto"
+pose = "Mettiti in posa!"
+print_preview = "Stampa in corso. Attendi..."
 
 [gui.colors]
 text = "white"
@@ -74,11 +85,14 @@ pin = 25
 type = 1 # IN
 pud = 22 # UP
 
-[usb]
-[printer]
-paper_size = 'A4'
+[usb.printer]
+sheet_format = "A5"
+dpi = 300
+sheet_margins = [0.5, 0.5, 0.5, 0.5] # cm
+pics_spacing = 0.5                   # cm
+pics_per_row = 2
 max_queue = 10
 max_wait_sec = 90
 
-[camera]
+[usb.camera]
 default = 0
