@@ -58,43 +58,42 @@ class PrinterManager:
                 f"Invalid sheet format: {format.name}"
             )
         return size
-    
-    def _start_printer_job_win(self) ->None:
-        import win32ui
+
+    def _start_printer_job_win(self, filename: Path) -> None:
+        # import win32ui
+        import win32print
+
+        printer_name = win32print.GetDefaultPrinter()
+        _logger.debug(f"Printing {filename} on printer {printer_name}")
+        return
+
         hdc = win32ui.CreateDC()
         hdc.CreatePrinterDC()
         job_id = None
         try:
             job_id = hdc.StartDoc("Stampa Immagine")
             hdc.StartPage()
-            
+
             dib = ImageWin.Dib(img)
             dib.draw(hdc.GetHandleOutput(), (0, 0, img.width, img.height))
-            
+
             hdc.EndPage()
             hdc.EndDoc()
-            
+
             if job_id:
                 monitor_thread = threading.Thread(
-                    target=monitora_job, 
-                    args=(nome_stampante, job_id, callback)
+                    target=monitora_job, args=(printer_name, job_id, callback)
                 )
                 monitor_thread.start()
-                
+
         finally:
             hdc.DeleteDC()
-        
+
         return job_id
 
     async def _print_windows(self, filename) -> None:
-        import win64print
-        import win32ui
-
-        printer_name = win32print.GetDefaultPrinter()
-        _logger.debug(f"Printing {filename} on printer {printer_name}")
-
-        hdc = win32ui.CreateDC()
-        hdc.CreatePrinterDC(printer_name)
+        self._start_printer_job_win(filename)
+        # aspetta il thread in corso (stampa)
 
     async def _print_linux(self) -> None:
         pass
